@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { margin: 0; font-family: sans-serif; background: transparent; }
+    button { width: 100%; border: 0; border-radius: 7px; padding: 9px 10px; color: white; background: #0e7490; cursor: pointer; font-size: 14px; }
+    #status { margin: 7px 1px 0; color: #9ca3af; font-size: 12px; line-height: 1.35; }
+  </style>
+</head>
+<body>
+  <button id="locate" type="button">Use my current location</button>
+  <div id="status">Location is used only to retrieve local weather and air quality.</div>
+  <script>
+    const send = (type, data = {}) => window.parent.postMessage({isStreamlitMessage: true, type, ...data}, "*");
+    send("streamlit:componentReady", {apiVersion: 1});
+    send("streamlit:setFrameHeight", {height: 78});
+    document.getElementById("locate").addEventListener("click", () => {
+      const status = document.getElementById("status");
+      if (!navigator.geolocation) {
+        status.textContent = "This browser does not support location services.";
+        send("streamlit:setComponentValue", {value: {action: "error", message: status.textContent, request_id: Date.now()}, dataType: "json"});
+        return;
+      }
+      status.textContent = "Waiting for browser permission…";
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          status.textContent = "Location received. Updating dashboard…";
+          send("streamlit:setComponentValue", {value: {action: "location", latitude: position.coords.latitude, longitude: position.coords.longitude, request_id: Date.now()}, dataType: "json"});
+        },
+        error => {
+          status.textContent = "Location unavailable: " + error.message;
+          send("streamlit:setComponentValue", {value: {action: "error", message: status.textContent, request_id: Date.now()}, dataType: "json"});
+        },
+        {enableHighAccuracy: true, timeout: 12000, maximumAge: 300000}
+      );
+    });
+  </script>
+</body>
+</html>

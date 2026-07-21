@@ -1,0 +1,4 @@
+Model,Status,RMSE,R2
+Random Forest,ready,2.173090355115115,0.9989938757052955
+Linear Regression,ready,16.237076628616666,0.9438290527195137
+LSTM,TensorFlow unavailable,,
